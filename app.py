@@ -17,6 +17,14 @@ def get_db():
         password=os.environ.get('DB_PASSWORD', 'root'),
         port=int(os.environ.get('DB_PORT', 3306))
     )
+@app.route('/health')
+def health():
+    try:
+        conn = get_db()
+        conn.close()
+        return "DB Connected OK!", 200
+    except Exception as e:
+        return f"DB Error: {str(e)}", 500
 
 def query_db(sql, args=(), one=False, commit=False):
     conn = get_db()
