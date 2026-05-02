@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — WildTrack{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block head_styles %}
+.chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+@media (max-width: 1100px) {
+    .chart-grid { grid-template-columns: 1fr 1fr; }
+}
+.chart-wrap {
+    position: relative;
+    height: 190px;
+    width: 100%;
+}
+{% endblock %}
+
+{% block content %}
+
+<!-- KPI Stats -->
+<div class="stats-row">
+    {% set stat_map = {
+        'Total Animals Tracked':   ('green', 'Animals Tracked'),
+        'Endangered Animals':      ('red',   'Endangered'),
+        'Total Habitats':          ('blue',  'Habitats'),
+        'Critical Habitats':       ('red',   'Critical Habitats'),
+        'Active Rangers':          ('green', 'Active Rangers'),
+        'Open Poaching Incidents': ('red',   'Open Incidents'),
+        'GPS Logs Recorded':       ('gold',  'GPS Logs')
+    } %}
+    {% for row in report %}
+        {% set info = stat_map.get(row.metric, ('blue', row.metric)) %}
+        <div class="stat-card {{ info[0] }}">
+            <div class="stat-label">{{ info[1] }}</div>
+            <div class="stat-value">{{ row.value }}</div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Charts -->
+<div class="chart-grid">
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Incidents by Habitat</span>
+            <span class="card-meta">poaching events</span>
+        </div>
+        <div class="card-body" style="padding:14px 14px 10px">
+            <div class="chart-wrap"><canvas id="incidentChart"></canvas></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Conservation Status</span>
+            <span class="card-meta">species breakdown</span>
+        </div>
+        <div class="card-body" style="padding:12px;display:flex;align-items:center;justify-content:center">
+            <div class="chart-wrap" style="max-width:230px"><canvas id="statusChart"></canvas></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Habitat Threat Levels</span>
+            <span class="card-meta">{{ habitat_summary|length }} habitats</span>
+        </div>
+        <div class="card-body" style="padding:14px 14px 10px">
+            <div class="chart-wrap"><canvas id="threatChart"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Grid -->
+<div class="grid-2 mb-24">
+
+    <!-- Recent Incidents -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Recent Incidents</span>
+            <a href="{{ url_for('add_incident') }}" class="btn btn-outline btn-sm">+ Report</a>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Habitat</th><th>Severity</th><th>Status</th><th>Date</th></tr>
+                </thead>
+                <tbody>
+                    {% for i in recent_incidents %}
+                    <tr>
+                        <td><strong>{{ i.habitat_name }}</strong></td>
+                        <td>
+                            {% if i.severity == 'Critical' %}<span class="badge badge-red">Critical</span>
+                            {% elif i.severity == 'High' %}<span class="badge badge-orange">High</span>
+                            {% elif i.severity == 'Medium' %}<span class="badge badge-yellow">Medium</span>
+                            {% else %}<span class="badge badge-gray">Low</span>{% endif %}
+                        </td>
+                        <td>
+                            {% if i.status == 'Open' %}<span class="badge badge-red">Open</span>
+                            {% elif i.status == 'Under Investigation' %}<span class="badge badge-orange">Investigating</span>
+                            {% else %}<span class="badge badge-green">{{ i.status }}</span>{% endif %}
+                        </td>
+                        <td style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--muted)">{{ i.incident_date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- At-Risk Species — grouped by species via SQL -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">At-Risk Species</span>
+            <span class="card-meta">{{ endangered|length }} species</span>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Species</th><th>Status</th><th>Tracked</th><th>Health</th><th>Habitats</th></tr>
+                </thead>
+                <tbody>
+                    {% for a in endangered %}
+                    <tr>
+                        <td><strong>{{ a.species }}</strong></td>
+                        <td>
+                            {% if a.conservation_status == 'Critically Endangered' %}
+                                <span class="badge badge-red">Critically Endangered</span>
+                            {% else %}
+                                <span class="badge badge-orange">{{ a.conservation_status }}</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--muted2)">{{ a.total_tracked }} animal{{ 's' if a.total_tracked != 1 }}</td>
+                        <td>
+                            {% if a.unhealthy_count == 0 %}
+                                <span class="badge badge-green">All healthy</span>
+                            {% else %}
+                                <span class="badge badge-orange">{{ a.unhealthy_count }} at risk</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size:11px;color:var(--muted2)">{{ a.habitats }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Habitat Summary -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">Habitat Overview</span>
+        <span class="card-meta">sorted by incidents</span>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>Habitat</th><th>Type</th><th>Area km²</th><th>Animals</th><th>Rangers</th><th>Incidents</th><th>Threat</th></tr>
+            </thead>
+            <tbody>
+                {% for h in habitat_summary %}
+                <tr>
+                    <td><strong>{{ h.name }}</strong></td>
+                    <td style="color:var(--muted2)">{{ h.habitat_type }}</td>
+                    <td style="font-family:'Geist Mono',monospace;font-size:12px">{{ h.area_sqkm }}</td>
+                    <td>{{ h.total_animals }}</td>
+                    <td>{{ h.total_rangers }}</td>
+                    <td>
+                        {% if h.total_incidents > 0 %}
+                        <span style="color:{% if h.total_incidents >= 3 %}var(--red){% elif h.total_incidents >= 2 %}var(--orange){% else %}var(--gold){% endif %};font-weight:600;font-family:'Geist Mono',monospace">{{ h.total_incidents }}</span>
+                        {% else %}<span style="color:var(--muted)">—</span>{% endif %}
+                    </td>
+                    <td><span class="threat threat-{{ h.threat_level | lower }}">{{ h.threat_level }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+Chart.defaults.color = '#4e5a6e';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+Chart.defaults.font.family = "'Geist', system-ui, sans-serif";
+Chart.defaults.font.size = 11;
+
+const habNames = [{% for h in habitat_summary %}"{{ h.name | truncate(13, true, '…') }}"{% if not loop.last %},{% endif %}{% endfor %}];
+const habIncidents = [{% for h in habitat_summary %}{{ h.total_incidents }}{% if not loop.last %},{% endif %}{% endfor %}];
+
+new Chart(document.getElementById('incidentChart'), {
+    type: 'bar',
+    data: {
+        labels: habNames,
+        datasets: [{
+            data: habIncidents,
+            backgroundColor: habIncidents.map(v =>
+                v >= 3 ? 'rgba(248,113,113,0.65)' :
+                v >= 2 ? 'rgba(251,146,60,0.65)' :
+                v >= 1 ? 'rgba(251,191,36,0.65)' :
+                         'rgba(52,211,153,0.45)'
+            ),
+            borderColor: 'transparent',
+            borderRadius: 4,
+        }]
+    },
+    options: {
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { ticks: { maxRotation: 40, font: { size: 10 } }, grid: { display: false } },
+            y: { ticks: { stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.04)' } }
+        }
+    }
+});
+
+new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Endangered', 'Critically Endangered', 'Vulnerable', 'Least Concern'],
+        datasets: [{
+            data: [
+                {{ report | selectattr('metric','eq','Endangered Animals') | map(attribute='value') | first | default(0) }},
+                3, 8, 4
+            ],
+            backgroundColor: [
+                'rgba(248,113,113,0.85)',
+                'rgba(200,40,40,0.9)',
+                'rgba(251,146,60,0.8)',
+                'rgba(52,211,153,0.7)'
+            ],
+            borderColor: '#181b22',
+            borderWidth: 2,
+            hoverOffset: 4
+        }]
+    },
+    options: {
+        maintainAspectRatio: false,
+        cutout: '65%',
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: { font: { size: 10 }, padding: 10, boxWidth: 10, color: '#7a8ba0' }
+            }
+        }
+    }
+});
+
+const threatCounts = { Critical: 0, High: 0, Medium: 0, Low: 0 };
+{% for h in habitat_summary %}
+threatCounts["{{ h.threat_level }}"] = (threatCounts["{{ h.threat_level }}"] || 0) + 1;
+{% endfor %}
+
+new Chart(document.getElementById('threatChart'), {
+    type: 'bar',
+    data: {
+        labels: ['Critical', 'High', 'Medium', 'Low'],
+        datasets: [{
+            data: [threatCounts.Critical, threatCounts.High, threatCounts.Medium, threatCounts.Low],
+            backgroundColor: [
+                'rgba(248,113,113,0.7)',
+                'rgba(251,146,60,0.7)',
+                'rgba(251,191,36,0.7)',
+                'rgba(52,211,153,0.6)'
+            ],
+            borderColor: 'transparent',
+            borderRadius: 4,
+        }]
+    },
+    options: {
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { ticks: { stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.04)' } },
+            y: { grid: { display: false } }
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}Patrol Logs — WildTrack{% endblock %}
+{% block page_title %}Patrol Logs{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('add_patrol') }}" class="btn btn-primary">+ Log Patrol</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="stats-row" style="grid-template-columns:repeat(5,1fr);margin-bottom:20px">
+    <div class="stat-card blue">
+        <div class="stat-label">Total Patrols</div>
+        <div class="stat-value">{{ stats.total_patrols or 0 }}</div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-label">Area Covered km²</div>
+        <div class="stat-value">{{ "%.0f"|format(stats.total_area or 0) }}</div>
+    </div>
+    <div class="stat-card red">
+        <div class="stat-label">Incidents Found</div>
+        <div class="stat-value">{{ stats.incidents_found or 0 }}</div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-label">Rangers Active</div>
+        <div class="stat-value">{{ stats.rangers_active or 0 }}</div>
+    </div>
+    <div class="stat-card blue">
+        <div class="stat-label">Habitats Covered</div>
+        <div class="stat-value">{{ stats.habitats_covered or 0 }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">All Patrol Logs</span>
+        <span class="card-meta">{{ patrols|length }} records</span>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th><th>Ranger</th><th>Habitat</th><th>Date</th>
+                    <th>Start</th><th>End</th><th>Duration</th>
+                    <th>Area km²</th><th>Incident</th><th>Observations</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in patrols %}
+                <tr>
+                    <td style="color:var(--muted);font-size:12px">#{{ p.patrol_id }}</td>
+                    <td>
+                        <strong>{{ p.ranger_name }}</strong>
+                        <div><code>{{ p.badge_number }}</code></div>
+                    </td>
+                    <td>{{ p.habitat_name }}</td>
+                    <td style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--muted2)">{{ p.patrol_date }}</td>
+                    <td style="font-family:'Geist Mono',monospace;font-size:12px">{{ p.start_time or '—' }}</td>
+                    <td style="font-family:'Geist Mono',monospace;font-size:12px">{{ p.end_time or '—' }}</td>
+                    <td style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--muted2)">{{ p.duration or '—' }}</td>
+                    <td style="font-family:'Geist Mono',monospace;font-size:12px">{{ p.area_covered_sqkm or '—' }}</td>
+                    <td>
+                        {% if p.incident_found %}
+                            <span class="badge badge-red">Yes</span>
+                        {% else %}
+                            <span class="badge badge-green">Clear</span>
+                        {% endif %}
+                    </td>
+                    <td style="max-width:240px;font-size:12px;color:var(--muted2)">{{ p.observations or '—' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="10" style="text-align:center;padding:40px;color:var(--muted)">
+                        No patrol logs yet.
+                        <a href="{{ url_for('add_patrol') }}" style="color:var(--accent);margin-left:6px">Log the first patrol →</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

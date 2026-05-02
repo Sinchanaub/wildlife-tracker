@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Log Patrol — WildTrack{% endblock %}
+{% block page_title %}Log Patrol{% endblock %}
+{% block topbar_actions %}<a href="{{ url_for('patrols') }}" class="btn btn-outline btn-sm">← Back</a>{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:700px">
+    <div class="card-header"><span class="card-title">New Patrol Log</span></div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Ranger</label>
+                    <select name="ranger_id" required>
+                        <option value="">Select ranger…</option>
+                        {% for r in rangers %}
+                        <option value="{{ r.ranger_id }}">{{ r.full_name }} ({{ r.badge_number }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Habitat</label>
+                    <select name="habitat_id" required>
+                        <option value="">Select habitat…</option>
+                        {% for h in habitats %}
+                        <option value="{{ h.habitat_id }}">{{ h.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Patrol Date</label>
+                    <input type="date" name="patrol_date" required>
+                </div>
+                <div class="form-group">
+                    <label>Area Covered (km²)</label>
+                    <input type="number" name="area_covered_sqkm" step="0.01" placeholder="e.g. 18.5">
+                </div>
+                <div class="form-group">
+                    <label>Start Time</label>
+                    <input type="time" name="start_time">
+                </div>
+                <div class="form-group">
+                    <label>End Time</label>
+                    <input type="time" name="end_time">
+                </div>
+                <div class="form-group full">
+                    <label>Observations</label>
+                    <textarea name="observations" placeholder="What was observed during the patrol…"></textarea>
+                </div>
+                <div class="form-group full">
+                    <label style="display:flex;align-items:center;gap:10px;text-transform:none;font-size:13px;font-weight:500;cursor:pointer">
+                        <input type="checkbox" name="incident_found" value="1"
+                            style="width:16px;height:16px;accent-color:var(--red);border:none;background:none;padding:0">
+                        Incident found during this patrol
+                    </label>
+                </div>
+            </div>
+            <div style="margin-top:22px;display:flex;gap:10px">
+                <button type="submit" class="btn btn-primary">Save Patrol Log</button>
+                <a href="{{ url_for('patrols') }}" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

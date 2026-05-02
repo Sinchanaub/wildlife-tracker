@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Add Habitat — WildTrack{% endblock %}
+{% block page_title %}Add Habitat{% endblock %}
+{% block topbar_actions %}<a href="{{ url_for('habitats') }}" class="btn btn-outline btn-sm">← Back</a>{% endblock %}
+{% block content %}
+<div class="card" style="max-width:700px">
+    <div class="card-header"><span class="card-title">New Habitat</span></div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="form-grid">
+                <div class="form-group"><label>Habitat Name</label><input type="text" name="name" required></div>
+                <div class="form-group"><label>Location</label><input type="text" name="location" required></div>
+                <div class="form-group"><label>Area (km²)</label><input type="number" name="area_sqkm" step="0.01"></div>
+                <div class="form-group">
+                    <label>Habitat Type</label>
+                    <select name="habitat_type">
+                        {% for t in ['Forest','Grassland','Wetland','Desert','Ocean','Mountain','Savanna'] %}<option>{{ t }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Threat Level</label>
+                    <select name="threat_level">
+                        {% for t in ['Low','Medium','High','Critical'] %}<option>{{ t }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-group"><label>Latitude</label><input type="number" name="latitude" step="0.000001"></div>
+                <div class="form-group"><label>Longitude</label><input type="number" name="longitude" step="0.000001"></div>
+            </div>
+            <div style="margin-top:24px;display:flex;gap:12px">
+                <button type="submit" class="btn btn-primary">Save Habitat</button>
+                <a href="{{ url_for('habitats') }}" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

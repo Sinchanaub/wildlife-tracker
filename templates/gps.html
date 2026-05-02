@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}GPS Logs — WildTrack{% endblock %}
+{% block page_title %}GPS Logs{% endblock %}
+{% block topbar_actions %}<a href="{{ url_for('add_gps') }}" class="btn btn-primary">+ Add GPS Log</a>{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">Latest Position per Animal</span>
+        <span class="card-meta">via SQL VIEW</span>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>Tag</th><th>Animal</th><th>Species</th><th>Latitude</th><th>Longitude</th><th>Last Recorded</th></tr>
+            </thead>
+            <tbody>
+                {% for g in logs %}
+                <tr>
+                    <td><code>{{ g.tag_number }}</code></td>
+                    <td><strong>{{ g.animal_name }}</strong></td>
+                    <td>{{ g.species }}</td>
+                    <td>{{ g.latitude }}</td>
+                    <td>{{ g.longitude }}</td>
+                    <td style="color:var(--muted);font-size:12px">{{ g.recorded_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

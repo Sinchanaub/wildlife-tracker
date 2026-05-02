@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Incidents — WildTrack{% endblock %}
+{% block page_title %}Poaching Incidents{% endblock %}
+{% block topbar_actions %}<a href="{{ url_for('add_incident') }}" class="btn btn-primary">+ Report Incident</a>{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">All Incidents</span>
+        <span class="card-meta">{{ incidents|length }} records</span>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>#</th><th>Habitat</th><th>Reported By</th><th>Date</th><th>Severity</th><th>Affected</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+                {% for i in incidents %}
+                <tr>
+                    <td style="color:var(--muted);font-size:12px">#{{ i.incident_id }}</td>
+                    <td><strong>{{ i.habitat_name }}</strong></td>
+                    <td>{{ i.ranger_name or 'Unknown' }}</td>
+                    <td style="color:var(--muted2);font-size:12px">{{ i.incident_date }}</td>
+                    <td>
+                        {% if i.severity == 'Critical' %}<span class="badge badge-red">Critical</span>
+                        {% elif i.severity == 'High' %}<span class="badge badge-orange">High</span>
+                        {% elif i.severity == 'Medium' %}<span class="badge badge-yellow">Medium</span>
+                        {% else %}<span class="badge badge-gray">Low</span>{% endif %}
+                    </td>
+                    <td>{{ i.animals_affected or '—' }}</td>
+                    <td>
+                        {% if i.status == 'Open' %}<span class="badge badge-red">Open</span>
+                        {% elif i.status == 'Under Investigation' %}<span class="badge badge-orange">Investigating</span>
+                        {% elif i.status == 'Resolved' %}<span class="badge badge-green">Resolved</span>
+                        {% else %}<span class="badge badge-gray">Closed</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

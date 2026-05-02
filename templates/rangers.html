@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Rangers — WildTrack{% endblock %}
+{% block page_title %}Rangers{% endblock %}
+{% block topbar_actions %}<a href="{{ url_for('add_ranger') }}" class="btn btn-primary">+ Add Ranger</a>{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">All Rangers</span>
+        <span class="card-meta">{{ rangers|length }} personnel</span>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>Badge</th><th>Name</th><th>Assigned Habitat</th><th>Phone</th><th>Patrols</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+                {% for r in rangers %}
+                <tr>
+                    <td><code>{{ r.badge_number }}</code></td>
+                    <td><strong>{{ r.full_name }}</strong></td>
+                    <td>{{ r.habitat_name or '—' }}</td>
+                    <td style="color:var(--muted2)">{{ r.phone }}</td>
+                    <td>{{ r.total_patrols }}</td>
+                    <td>
+                        {% if r.status == 'Active' %}<span class="badge badge-green">Active</span>
+                        {% elif r.status == 'On Leave' %}<span class="badge badge-yellow">On Leave</span>
+                        {% else %}<span class="badge badge-gray">{{ r.status }}</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

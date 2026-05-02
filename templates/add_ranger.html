@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Add Ranger — WildTrack{% endblock %}
+{% block page_title %}Add Ranger{% endblock %}
+{% block topbar_actions %}<a href="{{ url_for('rangers') }}" class="btn btn-outline btn-sm">← Back</a>{% endblock %}
+{% block content %}
+<div class="card" style="max-width:700px">
+    <div class="card-header"><span class="card-title">New Ranger</span></div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="form-grid">
+                <div class="form-group"><label>Full Name</label><input type="text" name="full_name" required></div>
+                <div class="form-group"><label>Badge Number</label><input type="text" name="badge_number" required placeholder="e.g. RNG-019"></div>
+                <div class="form-group"><label>Email</label><input type="email" name="email"></div>
+                <div class="form-group"><label>Phone</label><input type="text" name="phone"></div>
+                <div class="form-group">
+                    <label>Assigned Habitat</label>
+                    <select name="assigned_habitat_id">
+                        <option value="">None</option>
+                        {% for h in habitats %}<option value="{{ h.habitat_id }}">{{ h.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-group"><label>Join Date</label><input type="date" name="join_date" required></div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select name="status">
+                        <option>Active</option><option>On Leave</option><option>Retired</option>
+                    </select>
+                </div>
+            </div>
+            <div style="margin-top:24px;display:flex;gap:12px">
+                <button type="submit" class="btn btn-primary">Save Ranger</button>
+                <a href="{{ url_for('rangers') }}" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

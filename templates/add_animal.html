@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Add Animal — WildTrack{% endblock %}
+{% block page_title %}Add Animal{% endblock %}
+{% block topbar_actions %}<a href="{{ url_for('animals') }}" class="btn btn-outline btn-sm">← Back</a>{% endblock %}
+{% block content %}
+<div class="card" style="max-width:700px">
+    <div class="card-header"><span class="card-title">New Animal Record</span></div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Animal Name</label>
+                    <input type="text" name="name" required placeholder="e.g. Shiva">
+                </div>
+                <div class="form-group">
+                    <label>Tag Number</label>
+                    <input type="text" name="tag_number" required placeholder="e.g. TAG-T004">
+                </div>
+                <div class="form-group">
+                    <label>Species</label>
+                    <select name="species_id" required>
+                        <option value="">Select species...</option>
+                        {% for s in species %}
+                        <option value="{{ s.species_id }}">{{ s.common_name }} — {{ s.conservation_status }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Habitat</label>
+                    <select name="habitat_id" required>
+                        <option value="">Select habitat...</option>
+                        {% for h in habitats %}
+                        <option value="{{ h.habitat_id }}">{{ h.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Gender</label>
+                    <select name="gender">
+                        <option>Male</option><option>Female</option><option>Unknown</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Health Status</label>
+                    <select name="health_status">
+                        <option>Healthy</option><option>Injured</option><option>Sick</option>
+                        <option>Under Treatment</option><option>Critical</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Age (years)</label>
+                    <input type="number" name="age_years" min="0" placeholder="e.g. 5">
+                </div>
+                <div class="form-group">
+                    <label>Weight (kg)</label>
+                    <input type="number" name="weight_kg" step="0.01" placeholder="e.g. 185.5">
+                </div>
+                <div class="form-group full">
+                    <label>Notes</label>
+                    <textarea name="notes" placeholder="Additional observations..."></textarea>
+                </div>
+            </div>
+            <div style="margin-top:24px;display:flex;gap:12px">
+                <button type="submit" class="btn btn-primary">Save Animal</button>
+                <a href="{{ url_for('animals') }}" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

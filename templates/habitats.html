@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Habitats — WildTrack{% endblock %}
+{% block page_title %}Habitats{% endblock %}
+{% block topbar_actions %}<a href="{{ url_for('add_habitat') }}" class="btn btn-primary">+ Add Habitat</a>{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">All Habitats</span>
+        <span class="card-meta">{{ habitats|length }} reserves</span>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>Name</th><th>Type</th><th>Area km²</th><th>Animals</th><th>Rangers</th><th>Incidents</th><th>Threat Level</th></tr>
+            </thead>
+            <tbody>
+                {% for h in habitats %}
+                <tr>
+                    <td><strong>{{ h.name }}</strong></td>
+                    <td>{{ h.habitat_type }}</td>
+                    <td>{{ h.area_sqkm }}</td>
+                    <td>{{ h.total_animals }}</td>
+                    <td>{{ h.total_rangers }}</td>
+                    <td>
+                        {% if h.total_incidents > 0 %}
+                        <span style="color:{% if h.total_incidents >= 3 %}var(--red){% elif h.total_incidents >= 2 %}var(--orange){% else %}var(--gold){% endif %};font-weight:600">{{ h.total_incidents }}</span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td><span class="threat threat-{{ h.threat_level|lower }}">{{ h.threat_level }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

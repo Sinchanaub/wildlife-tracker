@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Add GPS Log — WildTrack{% endblock %}
+{% block page_title %}Add GPS Log{% endblock %}
+{% block topbar_actions %}<a href="{{ url_for('gps') }}" class="btn btn-outline btn-sm">← Back</a>{% endblock %}
+{% block content %}
+<div class="card" style="max-width:500px">
+    <div class="card-header"><span class="card-title">New GPS Log Entry</span></div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label>Animal</label>
+                    <select name="animal_id" required>
+                        <option value="">Select animal...</option>
+                        {% for a in animals %}<option value="{{ a.animal_id }}">{{ a.name }} ({{ a.tag_number }})</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="form-group"><label>Latitude</label><input type="number" name="latitude" step="0.000001" required placeholder="e.g. 26.0200"></div>
+                <div class="form-group"><label>Longitude</label><input type="number" name="longitude" step="0.000001" required placeholder="e.g. 76.5100"></div>
+                <div class="form-group full"><label>Altitude (m) — Optional</label><input type="number" name="altitude_m" step="0.01" placeholder="e.g. 350.0"></div>
+            </div>
+            <div style="margin-top:24px;display:flex;gap:12px">
+                <button type="submit" class="btn btn-primary">Save GPS Log</button>
+                <a href="{{ url_for('gps') }}" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

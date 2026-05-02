@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block title %}{{ animal.name }} — WildTrack{% endblock %}
+{% block page_title %}{{ animal.name }}{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('animals') }}" class="btn btn-outline btn-sm">← Back</a>
+{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+{% endblock %}
+
+{% block head_styles %}
+#gps-map {
+    height: 300px;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    overflow: hidden;
+    background: #111711;
+}
+.leaflet-container { background: #0d1a0d; }
+.profile-table tr td:first-child {
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 9px 0;
+    width: 140px;
+}
+.profile-table tr td:last-child {
+    color: var(--text);
+    font-size: 13px;
+    padding: 9px 0;
+}
+.profile-table tr { border-bottom: 1px solid var(--border); }
+.profile-table tr:last-child { border-bottom: none; }
+{% endblock %}
+
+{% block content %}
+<div class="grid-2 mb-20">
+
+    <!-- Profile -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Animal Profile</span>
+            <code>{{ animal.tag_number }}</code>
+        </div>
+        <div class="card-body">
+            <table class="profile-table" style="width:100%">
+                <tr><td>Species</td><td><strong>{{ animal.species_name }}</strong></td></tr>
+                <tr><td>Scientific</td><td><em style="color:var(--muted2)">{{ animal.scientific_name }}</em></td></tr>
+                <tr><td>Conservation</td><td><span class="badge badge-red">{{ animal.conservation_status }}</span></td></tr>
+                <tr><td>Habitat</td><td>{{ animal.habitat_name }}</td></tr>
+                <tr><td>Gender</td><td>{{ animal.gender }}</td></tr>
+                <tr><td>Age</td><td>{{ animal.age_years }} years</td></tr>
+                <tr><td>Weight</td><td>{{ animal.weight_kg }} kg</td></tr>
+                <tr><td>Health</td><td>
+                    {% if animal.health_status == 'Healthy' %}<span class="badge badge-green">Healthy</span>
+                    {% else %}<span class="badge badge-orange">{{ animal.health_status }}</span>{% endif %}
+                </td></tr>
+                {% if animal.notes %}
+                <tr><td>Notes</td><td style="color:var(--muted2);font-size:12px">{{ animal.notes }}</td></tr>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+
+    <!-- GPS Log Table -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">GPS Movement Log</span>
+            <a href="{{ url_for('add_gps') }}" class="btn btn-outline btn-sm">+ Add</a>
+        </div>
+        <div class="table-wrap" style="max-height:320px;overflow-y:auto">
+            <table>
+                <thead>
+                    <tr><th>Lat</th><th>Long</th><th>Alt</th><th>Recorded</th></tr>
+                </thead>
+                <tbody>
+                    {% for g in gps_logs %}
+                    <tr>
+                        <td>{{ g.latitude }}</td>
+                        <td>{{ g.longitude }}</td>
+                        <td>{{ g.altitude_m or '—' }} m</td>
+                        <td style="font-size:11px;color:var(--muted)">{{ g.recorded_at }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:32px">No GPS logs yet</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- GPS Map -->
+{% if gps_logs %}
+<div class="card mb-20">
+    <div class="card-header">
+        <span class="card-title">Movement Map</span>
+        <span class="card-meta">{{ gps_logs|length }} GPS points</span>
+    </div>
+    <div id="gps-map"></div>
+</div>
+
+<script>
+const points = [
+    {% for g in gps_logs %}
+    [{{ g.latitude }}, {{ g.longitude }}]{% if not loop.last %},{% endif %}
+    {% endfor %}
+];
+
+const map = L.map('gps-map', {
+    zoomControl: true,
+    scrollWheelZoom: false
+});
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap © CARTO',
+    maxZoom: 18
+}).addTo(map);
+
+if (points.length > 0) {
+    const polyline = L.polyline(points, {
+        color: '#4ade80',
+        weight: 2.5,
+        opacity: 0.8,
+        dashArray: '6, 4'
+    }).addTo(map);
+
+    // Start marker (first point)
+    L.circleMarker(points[0], {
+        radius: 7,
+        fillColor: '#60a5fa',
+        color: '#1e3a5f',
+        weight: 2,
+        fillOpacity: 1
+    }).addTo(map).bindPopup('<b>First recorded position</b>');
+
+    // Latest marker
+    L.circleMarker(points[points.length - 1], {
+        radius: 9,
+        fillColor: '#4ade80',
+        color: '#1a3d24',
+        weight: 2,
+        fillOpacity: 1
+    }).addTo(map).bindPopup('<b>Latest position</b>');
+
+    // Waypoints
+    points.slice(1, -1).forEach((p, i) => {
+        L.circleMarker(p, {
+            radius: 4,
+            fillColor: '#fbbf24',
+            color: '#3d2f00',
+            weight: 1.5,
+            fillOpacity: 0.9
+        }).addTo(map);
+    });
+
+    map.fitBounds(polyline.getBounds(), { padding: [30, 30] });
+}
+</script>
+{% endif %}
+
+{% endblock %}

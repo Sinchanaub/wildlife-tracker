@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block title %}Animals — WildTrack{% endblock %}
+{% block page_title %}Animals{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('add_animal') }}" class="btn btn-primary">+ Add Animal</a>
+{% endblock %}
+
+{% block head_styles %}
+.filter-bar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.filter-bar input[type="text"] { width: 220px; font-size: 12.5px; }
+.filter-bar select { font-size: 12.5px; min-width: 150px; }
+.filter-clear {
+    font-size: 11px;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 7px 10px;
+    border-radius: var(--radius);
+    transition: color 0.12s;
+    white-space: nowrap;
+}
+.filter-clear:hover { color: var(--red); }
+.result-count {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Geist Mono', monospace;
+}
+{% endblock %}
+
+{% block content %}
+
+<!-- Filter Bar -->
+<div class="card mb-20">
+    <div class="card-body" style="padding:12px 16px">
+        <form method="GET" action="{{ url_for('animals') }}">
+            <div class="filter-bar">
+                <input type="text" name="q" value="{{ request.args.get('q','') }}"
+                    placeholder="Search name, tag, species…">
+
+                <select name="species">
+                    <option value="">All Species</option>
+                    {% for s in all_species %}
+                    <option value="{{ s.species_id }}"
+                        {% if request.args.get('species')|string == s.species_id|string %}selected{% endif %}>
+                        {{ s.common_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                <select name="health">
+                    <option value="">All Health</option>
+                    {% for h in ['Healthy','Injured','Sick','Under Treatment','Critical'] %}
+                    <option value="{{ h }}"
+                        {% if request.args.get('health') == h %}selected{% endif %}>
+                        {{ h }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit" class="btn btn-outline" style="padding:7px 14px;font-size:12px">Filter</button>
+
+                {% if request.args.get('q') or request.args.get('species') or request.args.get('health') %}
+                <a href="{{ url_for('animals') }}" class="filter-clear">✕ Clear</a>
+                {% endif %}
+
+                <span class="result-count">{{ animals|length }} result{{ 's' if animals|length != 1 }}</span>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">Tracked Animals</span>
+        <span class="card-meta">
+            {% if request.args.get('q') or request.args.get('species') or request.args.get('health') %}filtered view
+            {% else %}{{ animals|length }} records{% endif %}
+        </span>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Tag</th><th>Name</th><th>Species</th><th>Habitat</th>
+                    <th>Gender</th><th>Age</th><th>Weight</th>
+                    <th>Conservation</th><th>Health</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in animals %}
+                <tr>
+                    <td><code>{{ a.tag_number }}</code></td>
+                    <td><strong>{{ a.name }}</strong></td>
+                    <td>{{ a.species_name }}</td>
+                    <td>{{ a.habitat_name }}</td>
+                    <td>{{ a.gender }}</td>
+                    <td style="font-family:'Geist Mono',monospace;font-size:12px">{{ a.age_years }} yr</td>
+                    <td style="font-family:'Geist Mono',monospace;font-size:12px">{{ a.weight_kg }} kg</td>
+                    <td>
+                        {% if a.conservation_status in ['Endangered','Critically Endangered'] %}
+                            <span class="badge badge-red">{{ a.conservation_status }}</span>
+                        {% elif a.conservation_status == 'Vulnerable' %}
+                            <span class="badge badge-orange">{{ a.conservation_status }}</span>
+                        {% else %}
+                            <span class="badge badge-green">{{ a.conservation_status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if a.health_status == 'Healthy' %}<span class="badge badge-green">Healthy</span>
+                        {% elif a.health_status in ['Injured','Sick','Under Treatment'] %}<span class="badge badge-orange">{{ a.health_status }}</span>
+                        {% elif a.health_status == 'Critical' %}<span class="badge badge-red">Critical</span>
+                        {% else %}<span class="badge badge-gray">{{ a.health_status }}</span>{% endif %}
+                    </td>
+                    <td><a href="{{ url_for('animal_detail', animal_id=a.animal_id) }}" class="btn btn-outline btn-sm">View →</a></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="10" style="text-align:center;padding:40px;color:var(--muted)">
+                        No animals match your filters.
+                        <a href="{{ url_for('animals') }}" style="color:var(--accent);margin-left:8px">Clear filters</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
