@@ -345,4 +345,4 @@ def api_gps(animal_id):
     return jsonify([{**r, 'recorded_at': str(r['recorded_at'])} for r in logs])
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
