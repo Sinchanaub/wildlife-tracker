@@ -2,10 +2,6 @@
 
 A database-driven web app for tracking endangered animals, habitats, ranger patrols, poaching incidents and GPS movement. Built as a **DBMS project** with Flask and MySQL 8.0, with the database logic (views, trigger, stored procedure) doing much of the heavy lifting.
 
-🔗 **Live demo:** [add URL if deployed]
-
-![Dashboard](screenshot.png)
-
 ## Features
 
 - **Dashboard** with Chart.js charts (incidents, animal status, habitat threat levels), fed by a stored procedure
